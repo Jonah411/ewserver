@@ -1,6 +1,9 @@
 const asyncHandler = require("express-async-handler");
+const bcrypt = require("bcrypt");
 
 const User = require("../models/userModel");
+const Roll = require("../models/rollModel");
+const Organization = require("../models/orgModel");
 
 const getAllUser = asyncHandler(async (req, res) => {
   const user = await User.find();
@@ -8,13 +11,46 @@ const getAllUser = asyncHandler(async (req, res) => {
 });
 
 const createUser = asyncHandler(async (req, res) => {
-  const { name, email } = req.body;
-  if (!name || !email) {
-    res.status(400);
-    throw new Error("All fiels are mandatory");
+  const { orgId, name, age, gender, email, phoneNo, password } = req.body;
+
+  try {
+    // Find organization data
+    const orgData = await Organization.findOne({ _id: orgId });
+    if (!orgData) {
+      return res.status(404).json({ message: "Organization not found" });
+    }
+
+    // Find viewer role data
+    const rollData = await Roll.findOne({ rName: "viewer" });
+    if (!rollData) {
+      return res.status(404).json({ message: "Viewer role not found" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create the user
+    const user = await User.create({
+      Organization: orgData._id,
+      name,
+      age,
+      gender,
+      email,
+      phoneNo,
+      password: hashedPassword,
+      Roll: rollData._id,
+    });
+
+    res.status(201).json({
+      data: user,
+      message: "User created successfully",
+      success: true,
+    });
+  } catch (error) {
+    // Handle errors
+    console.error("Error creating user:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-  const user = await User.create({ name, email });
-  res.status(201).json({ data: user, message: "Create user" });
 });
 
 const updateUser = asyncHandler(async (req, res) => {

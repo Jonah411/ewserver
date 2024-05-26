@@ -1,46 +1,45 @@
 const mongoose = require("mongoose");
 
-const userSchema = mongoose.Schema(
+const orgSchema = mongoose.Schema(
   {
-    Organization: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Organization",
-      required: true,
-    },
-
-    name: {
+    orgName: {
       type: String,
       required: true,
     },
-    age: {
+    orgPlace: {
+      type: String,
+      required: true,
+    },
+    orgAddress: {
+      type: String,
+      required: true,
+    },
+    orgMembersCount: {
       type: Number,
       required: true,
     },
-    gender: {
+    orgLogo: {
       type: String,
       required: true,
     },
-    email: {
+    orgDescription: {
       type: String,
       required: true,
-      unique: true,
     },
-    phoneNo: {
+    orgYear: {
       type: Number,
       required: true,
-      unique: true,
     },
-    password: {
-      type: String,
+    orgMebAgeFrom: {
+      type: Number,
       required: true,
     },
-    Roll: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Roll",
+    orgMebAgeTo: {
+      type: Number,
       required: true,
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("Organization", orgSchema);
