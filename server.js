@@ -8,7 +8,8 @@ const path = require("path");
 const app = express();
 
 const cors = require("cors");
-const corsOptions = require("./config/corsOptions");
+const corsOptions = require("./config/CorsOptions");
+app.use(cors(corsOptions));
 
 const port = process.env.PORT || 5000;
 
