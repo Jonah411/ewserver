@@ -11,6 +11,7 @@ exports.currentOrg = asyncHandler(async (req, res) => {
 });
 
 exports.createOrganization = asyncHandler(async (req, res) => {
+  debugger;
   logoHandler(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ msg: err.message, success: false });
@@ -19,6 +20,8 @@ exports.createOrganization = asyncHandler(async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ msg: "No file uploaded", success: false });
     }
+
+    const confiq = parseJson(req.body);
 
     const { filename } = req.file;
 
@@ -31,10 +34,12 @@ exports.createOrganization = asyncHandler(async (req, res) => {
       orgYear,
       orgMebAgeFrom,
       orgMebAgeTo,
-    } = req.body;
+    } = confiq;
     const organizationData = await Organization.findOne({
       orgName: orgName,
     });
+    console.log(organizationData);
+
     if (!organizationData) {
       const newOrg = new Organization({
         orgName,
@@ -55,8 +60,8 @@ exports.createOrganization = asyncHandler(async (req, res) => {
           rName: "admin",
         });
         const newUser = new User({
-          orgId: savedOrg._id,
-          name: "Admin",
+          Organization: savedOrg._id,
+          name: savedOrg.orgName,
           age: 20,
           gender: "male",
           email: "admin@gmail.com",
@@ -64,7 +69,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
           password: "admin",
           Roll: rollData._id,
         });
-        const savedUser = await newUser.save();
+        await newUser.save();
       }
       res.status(201).json({
         msg: "Organization create successfully!",
