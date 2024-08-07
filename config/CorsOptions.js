@@ -3,6 +3,10 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://ewserver.onrender.com",
   "https://ewserver.onrender.com/",
+  "https://easyproduct.netlify.app/",
+  "https://easyproduct.netlify.app",
+  "https://easyproduct.onrender.com/",
+  "https://easyproduct.onrender.com",
 ];
 
 const corsOptions = {
