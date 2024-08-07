@@ -1,4 +1,9 @@
-const allowedOrigins = ["http://localhost:3000/", "http://localhost:3000"];
+const allowedOrigins = [
+  "http://localhost:3000/",
+  "http://localhost:3000",
+  "https://ewserver.onrender.com",
+  "https://ewserver.onrender.com/",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
