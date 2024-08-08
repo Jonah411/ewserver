@@ -20,7 +20,6 @@ const orgSchema = mongoose.Schema(
     },
     orgLogo: {
       type: String,
-      required: true,
     },
     orgDescription: {
       type: String,

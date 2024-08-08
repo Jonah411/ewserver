@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
+const mongoose = require("mongoose");
 
 const User = require("../models/userModel");
 const Roll = require("../models/rollModel");
@@ -79,12 +80,41 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 const getUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.find({ Organization: req.params.id }).select(
+    "name email Organization"
+  );
+
   if (!user) {
     res.status(404);
     throw new Error("User Not Found.");
   }
-  res.status(200).json(user);
+  res.status(200).json({
+    msg: "Get Selected User Successfully!",
+    status: true,
+    data: user,
+  });
 });
 
-module.exports = { getAllUser, createUser, updateUser, deleteUser, getUser };
+const getUserOrg = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).populate("Organization");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User Not Found.");
+  }
+
+  res.status(200).json({
+    msg: "User and organization retrieved successfully!",
+    status: true,
+    data: user,
+  });
+});
+
+module.exports = {
+  getAllUser,
+  createUser,
+  updateUser,
+  deleteUser,
+  getUserOrg,
+  getUser,
+};

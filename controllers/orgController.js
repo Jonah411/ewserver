@@ -5,25 +5,23 @@ const Roll = require("../models/rollModel");
 const { gfs } = require("../config/LogoUpload");
 const logoHandler = require("../config/LogoUpload");
 const parseJson = require("../helper/JsonHelper");
+const bcrypt = require("bcryptjs");
 
 exports.currentOrg = asyncHandler(async (req, res) => {
   res.status(200).json("user");
 });
 
 exports.createOrganization = asyncHandler(async (req, res) => {
-  debugger;
   logoHandler(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ msg: err.message, success: false });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ msg: "No file uploaded", success: false });
-    }
+    // if (!req.file) {
+    //   return res.status(400).json({ msg: "No file uploaded", success: false });
+    // }
 
     const confiq = parseJson(req.body);
-
-    const { filename } = req.file;
 
     const {
       orgName,
@@ -35,52 +33,70 @@ exports.createOrganization = asyncHandler(async (req, res) => {
       orgMebAgeFrom,
       orgMebAgeTo,
     } = confiq;
+    const { name, age, gender, email, phoneNo, password } = confiq;
+    const hashedPassword = await bcrypt.hash(password, 10);
     const organizationData = await Organization.findOne({
       orgName: orgName,
     });
-    console.log(organizationData);
 
     if (!organizationData) {
-      const newOrg = new Organization({
+      Organization.create({
         orgName,
         orgPlace,
         orgAddress,
         orgMembersCount,
-        orgLogo: filename,
+        orgLogo: req.file.filename ? req.file.filename : "",
         orgDescription,
         orgYear,
         orgMebAgeFrom,
         orgMebAgeTo,
-      });
+      })
+        .then(async (org) => {
+          if (org) {
+            const rollAdminData = await Roll.findOne({
+              rName: "admin",
+            });
 
-      const savedOrg = await newOrg.save();
-
-      if (savedOrg) {
-        const rollData = await Roll.findOne({
-          rName: "admin",
+            User.create({
+              Organization: org._id,
+              name,
+              age,
+              gender,
+              email,
+              phoneNo,
+              password: hashedPassword,
+              Roll: rollAdminData._id,
+            }).then((user) => {
+              res.status(201).json({
+                msg: "Organization & User Create successfully!",
+                data: { organization: org, user: user },
+                success: false,
+              });
+            });
+          }
+        })
+        .catch((err) => {
+          console.error("Error creating user:", err);
         });
-        const newUser = new User({
-          Organization: savedOrg._id,
-          name: savedOrg.orgName,
-          age: 20,
-          gender: "male",
-          email: "admin@gmail.com",
-          phoneNo: 9999999999,
-          password: "admin",
-          Roll: rollData._id,
-        });
-        await newUser.save();
-      }
-      res.status(201).json({
-        msg: "Organization create successfully!",
-        data: savedOrg,
-        success: true,
-      });
     } else {
-      res.status(400).json({
-        msg: "Organization Already created!",
-        data: {},
-        success: false,
+      const rollMemberData = await Roll.findOne({
+        rName: "member",
+      });
+      User.create({
+        Organization: organizationData._id,
+        name,
+        age,
+        gender,
+        email,
+        phoneNo,
+        password: hashedPassword,
+        Roll: rollMemberData._id,
+      }).then((user) => {
+        res.status(201).json({
+          msg: "User Create Succesfully!",
+          data: { organization: organizationData, user: user },
+          success: false,
+        });
       });
     }
   });
