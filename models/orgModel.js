@@ -6,6 +6,10 @@ const orgSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    orgDisplayName: {
+      type: String,
+      required: true,
+    },
     orgPlace: {
       type: String,
       required: true,

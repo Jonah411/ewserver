@@ -34,6 +34,12 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    userImage: {
+      type: String,
+    },
+    userAddress: {
+      type: String,
+    },
     Roll: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Roll",

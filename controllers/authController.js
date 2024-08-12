@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const { ObjectId } = require("mongodb");
 const secret = process.env.secret;
 const refreshSecret = process.env.refreshSecret;
 
@@ -18,7 +18,15 @@ const loginUser = asyncHandler(async (req, res) => {
   })
     .populate("Organization")
     .populate("Roll");
-  console.log(userData);
+
+  if (!userData) {
+    return res.status(400).json({ msg: "mismatch Organization and Email" });
+  }
+  const organizationId = new ObjectId(organization);
+
+  if (!userData.Organization._id.equals(organizationId)) {
+    return res.status(400).json({ msg: "Invalid organization credentials" });
+  }
 
   if (userData.email !== email) {
     return res.status(400).json({ msg: "Invalid email credentials" });

@@ -32,12 +32,15 @@ exports.createOrganization = asyncHandler(async (req, res) => {
       orgYear,
       orgMebAgeFrom,
       orgMebAgeTo,
+      orgDisplayName,
     } = confiq;
-    const { name, age, gender, email, phoneNo, password } = confiq;
+    const { name, age, gender, email, phoneNo, password, userAddress } = confiq;
     const hashedPassword = await bcrypt.hash(password, 10);
     const organizationData = await Organization.findOne({
       orgName: orgName,
     });
+    const orgLogo = req.files["orgLogo"] ? req.files["orgLogo"][0] : null;
+    const userImage = req.files["userImage"] ? req.files["userImage"][0] : null;
 
     if (!organizationData) {
       Organization.create({
@@ -45,18 +48,35 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         orgPlace,
         orgAddress,
         orgMembersCount,
-        orgLogo: req.file.filename ? req.file.filename : "",
+        orgLogo: orgLogo ? orgLogo?.filename : "",
         orgDescription,
         orgYear,
         orgMebAgeFrom,
         orgMebAgeTo,
+        orgDisplayName,
       })
         .then(async (org) => {
           if (org) {
             const rollAdminData = await Roll.findOne({
               rName: "admin",
             });
+            const userEmail = await User.findOne({
+              email: email,
+            });
+            const userPhoneNO = await User.findOne({
+              phoneNo: phoneNo,
+            });
 
+            if (userEmail.email === email) {
+              return res
+                .status(400)
+                .json({ msg: "Dublicate Email Id. Pls Change Email." });
+            }
+            if (userPhoneNO.phoneNo === phoneNo) {
+              return res
+                .status(400)
+                .json({ msg: "Dublicate phoneNo. Pls Change phoneNo." });
+            }
             User.create({
               Organization: org._id,
               name,
@@ -64,6 +84,8 @@ exports.createOrganization = asyncHandler(async (req, res) => {
               gender,
               email,
               phoneNo,
+              userAddress,
+              userImage: userImage?.filename,
               password: hashedPassword,
               Roll: rollAdminData._id,
             }).then((user) => {
@@ -89,7 +111,9 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         gender,
         email,
         phoneNo,
+        userImage: userImage?.filename,
         password: hashedPassword,
+        userAddress,
         Roll: rollMemberData._id,
       }).then((user) => {
         res.status(201).json({

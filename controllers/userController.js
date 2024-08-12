@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const User = require("../models/userModel");
 const Roll = require("../models/rollModel");
 const Organization = require("../models/orgModel");
+const { encrypt } = require("../config/EncryptionDecryption");
 
 const getAllUser = asyncHandler(async (req, res) => {
   const user = await User.find();
@@ -110,6 +111,24 @@ const getUserOrg = asyncHandler(async (req, res) => {
   });
 });
 
+const getSingleUser = asyncHandler(async (req, res) => {
+  const user = await User.findById({ _id: req.params.id }).populate(
+    "Organization Roll"
+  );
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User Not Found.");
+  }
+  const jsonString = JSON.stringify(user);
+  const encryptedData = encrypt(jsonString);
+  res.status(200).json({
+    msg: "Get Selected User Successfully!",
+    status: true,
+    data: encryptedData,
+  });
+});
+
 module.exports = {
   getAllUser,
   createUser,
@@ -117,4 +136,5 @@ module.exports = {
   deleteUser,
   getUserOrg,
   getUser,
+  getSingleUser,
 };
