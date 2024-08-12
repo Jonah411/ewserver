@@ -40,6 +40,9 @@ let upload = multer({
   },
 });
 
-let logoHandler = upload.single("orgLogo");
+const uploadHandler = upload.fields([
+  { name: "orgLogo", maxCount: 1 },
+  { name: "userImage", maxCount: 1 },
+]);
 
-module.exports = logoHandler;
+module.exports = uploadHandler;
