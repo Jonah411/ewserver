@@ -3,8 +3,8 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require("mongodb");
-const secret = process.env.secret;
-const refreshSecret = process.env.refreshSecret;
+const secret = "workeasy0409";
+const refreshSecret = "refreshworkeasy0409";
 
 const registerUser = asyncHandler(async (req, res) => {
   res.status(200).json("user");
