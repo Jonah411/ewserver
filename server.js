@@ -26,6 +26,7 @@ app.use(errorHandler);
 app.get("/api/protected", authMiddleware, (req, res) => {
   res.json({ message: "This is a protected route", user: req.user });
 });
+app.use("/api/auth/org", authMiddleware, require("./routes/authOrgRoutes"));
 
 app.listen(port, () => {
   console.log(`server running on ${port}`);

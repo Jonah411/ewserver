@@ -80,7 +80,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         });
     } else {
       const rollMemberData = await Roll.findOne({
-        rName: "member",
+        rName: "viewer",
       });
       User.create({
         Organization: organizationData._id,

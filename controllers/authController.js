@@ -14,7 +14,11 @@ const loginUser = asyncHandler(async (req, res) => {
   const { organization, email, password } = req.body;
   const userData = await User.findOne({
     Organization: organization,
-  });
+    email: email,
+  })
+    .populate("Organization")
+    .populate("Roll");
+  console.log(userData);
 
   if (userData.email !== email) {
     return res.status(400).json({ msg: "Invalid email credentials" });
@@ -31,9 +35,10 @@ const loginUser = asyncHandler(async (req, res) => {
   const refreshToken = jwt.sign({ username: userData.name }, refreshSecret, {
     expiresIn: "7d",
   });
-  res
-    .status(200)
-    .json({ msg: "Login Successfull!", data: { token, refreshToken } });
+  res.status(200).json({
+    msg: "Login Successfull!",
+    data: { token, refreshToken, userData },
+  });
   // res.json({ token, refreshToken });
 });
 
@@ -55,8 +60,15 @@ const refreshToken = async (req, res) => {
   }
 };
 
+const logout = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    msg: "Logout Successfull!",
+    data: { token: "", refreshToken: "" },
+  });
+});
+
 const currentUser = asyncHandler(async (req, res) => {
   res.status(200).json("user");
 });
 
-module.exports = { registerUser, loginUser, currentUser, refreshToken };
+module.exports = { registerUser, loginUser, currentUser, refreshToken, logout };
