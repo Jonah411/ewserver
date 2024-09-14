@@ -32,7 +32,7 @@ let upload = multer({
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Only image files are allowed"));
     }
-    // If the file is an image, pass null as the error
+
     cb(null, true);
   },
   limits: {
