@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const rollSchema = mongoose.Schema(
   {
@@ -10,6 +11,12 @@ const rollSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    rMenu: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Menu",
+      },
+    ],
   },
   { timestamps: true }
 );

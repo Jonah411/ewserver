@@ -28,6 +28,7 @@ app.get("/app/protected", authMiddleware, (req, res) => {
 });
 app.use("/app/auth/org", authMiddleware, require("./routes/authOrgRoutes"));
 app.use("/app/auth/user", authMiddleware, require("./routes/userAuthRoutes"));
+app.use("/app/auth/menu", authMiddleware, require("./routes/menuRoutes"));
 
 app.listen(port, () => {
   console.log(`server running on ${port}`);
