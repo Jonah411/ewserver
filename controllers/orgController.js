@@ -66,17 +66,21 @@ exports.createOrganization = asyncHandler(async (req, res) => {
             const userPhoneNO = await User.findOne({
               phoneNo: phoneNo,
             });
+            if (userEmail) {
+              if (userEmail.email === email) {
+                return res
+                  .status(400)
+                  .json({ msg: "Dublicate Email Id. Pls Change Email." });
+              }
+            }
+            if (userPhoneNO) {
+              if (userPhoneNO.phoneNo === phoneNo) {
+                return res
+                  .status(400)
+                  .json({ msg: "Dublicate phoneNo. Pls Change phoneNo." });
+              }
+            }
 
-            if (userEmail.email === email) {
-              return res
-                .status(400)
-                .json({ msg: "Dublicate Email Id. Pls Change Email." });
-            }
-            if (userPhoneNO.phoneNo === phoneNo) {
-              return res
-                .status(400)
-                .json({ msg: "Dublicate phoneNo. Pls Change phoneNo." });
-            }
             User.create({
               Organization: org._id,
               name,
@@ -102,7 +106,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         });
     } else {
       const rollMemberData = await Roll.findOne({
-        rName: "viewer",
+        rName: "member",
       });
       User.create({
         Organization: organizationData._id,
