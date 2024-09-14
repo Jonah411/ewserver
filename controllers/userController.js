@@ -129,6 +129,24 @@ const getSingleUser = asyncHandler(async (req, res) => {
   });
 });
 
+const getAllOrgUser = asyncHandler(async (req, res) => {
+  const user = await User.find({ Organization: req.params.id }).populate(
+    "Organization Roll"
+  );
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User Not Found.");
+  }
+  const jsonString = JSON.stringify(user);
+  const encryptedData = encrypt(jsonString);
+  res.status(200).json({
+    msg: "Get All Org User Successfully!",
+    status: true,
+    data: encryptedData,
+  });
+});
+
 module.exports = {
   getAllUser,
   createUser,
@@ -137,4 +155,5 @@ module.exports = {
   getUserOrg,
   getUser,
   getSingleUser,
+  getAllOrgUser,
 };
