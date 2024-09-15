@@ -1,13 +1,18 @@
 const mongoose = require("mongoose");
+const { incrementMemberCount } = require("../middleware/memberMiddleware");
 
-const userSchema = mongoose.Schema(
+const memberSchema = mongoose.Schema(
   {
     Organization: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
       required: true,
     },
-
+    User: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -34,16 +39,13 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    userImage: {
+    memberImage: {
       type: String,
     },
     userAddress: {
       type: String,
     },
-    memberCount: {
-      type: Number,
-      default: 0,
-    },
+
     Roll: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Roll",
@@ -52,5 +54,6 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+memberSchema.post("save", incrementMemberCount);
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("Member", memberSchema);

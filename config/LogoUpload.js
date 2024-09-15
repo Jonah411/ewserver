@@ -32,7 +32,7 @@ let upload = multer({
     if (!file.mimetype.startsWith("image/")) {
       return cb(new Error("Only image files are allowed"));
     }
-    // If the file is an image, pass null as the error
+
     cb(null, true);
   },
   limits: {
@@ -43,6 +43,7 @@ let upload = multer({
 const uploadHandler = upload.fields([
   { name: "orgLogo", maxCount: 1 },
   { name: "userImage", maxCount: 1 },
+  { name: "memberImage", maxCount: 1 },
 ]);
 
 module.exports = uploadHandler;
