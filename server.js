@@ -23,9 +23,6 @@ app.use("/app/roll", require("./routes/rollRoutes"));
 app.use("/app/org/", require("./routes/orgRoutes"));
 app.use(errorHandler);
 
-app.get("/app/protected", authMiddleware, (req, res) => {
-  res.json({ message: "This is a protected route", user: req.user });
-});
 app.use("/app/auth/org", authMiddleware, require("./routes/authOrgRoutes"));
 app.use("/app/auth/user", authMiddleware, require("./routes/userAuthRoutes"));
 app.use("/app/auth/menu", authMiddleware, require("./routes/menuRoutes"));

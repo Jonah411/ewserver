@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
+const Member = require("../models/memberModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require("mongodb");
@@ -12,12 +13,20 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   const { organization, email, password } = req.body;
-  const userData = await User.findOne({
+  let userData = await Member.findOne({
     Organization: organization,
     email: email,
   })
     .populate("Organization")
     .populate("Roll");
+  if (!userData) {
+    userData = await User.findOne({
+      Organization: organization,
+      email: email,
+    })
+      .populate("Organization")
+      .populate("Roll");
+  }
 
   if (!userData) {
     return res.status(400).json({ msg: "mismatch Organization and Email" });

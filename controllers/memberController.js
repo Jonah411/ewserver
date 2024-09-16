@@ -71,6 +71,11 @@ const createMember = asyncHandler(async (req, res) => {
             .status(400)
             .json({ msg: "Dublicate Email Id. Pls Change Email." });
         }
+        if (member.phoneNo === phoneNo) {
+          return res
+            .status(400)
+            .json({ msg: "Dublicate Phone No. Pls Change PhoneNo." });
+        }
       }
 
       const newMember = await memberModel.create({
