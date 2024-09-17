@@ -9,7 +9,7 @@ const router = express.Router();
 
 //router.post("/createroll", createRoll);
 router.route("/createmenu").post(createMenu);
-router.route("/getallrolls").get(getAllRoll);
+router.route("/getallrolls/:id").get(getAllRoll);
 router.route("/getallmenus").get(getAllMenu);
 
 router.put("/updateroll/:id", updateRoll);

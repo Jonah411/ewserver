@@ -190,16 +190,24 @@ const createUserMember = asyncHandler(async (req, res) => {
     }
     const userImage = req.files["userImage"] ? req.files["userImage"][0] : null;
 
-    const rollUserData = await rollModel.findOne({
+    let rollUserData = await rollModel.findOne({
       rName: "member",
     });
+
     try {
       if (!mongoose.Types.ObjectId.isValid(orgId)) {
         return res
           .status(400)
           .json({ msg: "Invalid Organization.", status: false });
       }
-
+      if (!rollUserData) {
+        rollUserData = await Roll.create({
+          rName: "member",
+          rAccess: "H",
+          rMenu: [],
+          rOrg: orgId,
+        });
+      }
       const user = await userModel.findOne({
         Organization: orgId,
       });
