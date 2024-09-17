@@ -30,7 +30,8 @@ const createRoll = asyncHandler(async (req, res) => {
 });
 
 const getAllRoll = asyncHandler(async (req, res) => {
-  const roll = await Roll.find().populate("rMenu");
+  const orgId = req.params.id;
+  const roll = await Roll.find({ rOrg: orgId }).populate("rMenu");
   const jsonString = JSON.stringify(roll);
   const encryptedData = encrypt(jsonString);
   res.status(201).json({

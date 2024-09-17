@@ -7,8 +7,13 @@ const rollSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    fAccess: {
+    rAccess: {
       type: String,
+      required: true,
+    },
+    rOrg: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
       required: true,
     },
     rMenu: [

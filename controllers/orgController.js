@@ -39,6 +39,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
     const organizationData = await Organization.findOne({
       orgName: orgName,
     });
+
     const orgLogo = req.files["orgLogo"] ? req.files["orgLogo"][0] : null;
     const userImage = req.files["userImage"] ? req.files["userImage"][0] : null;
 
@@ -57,8 +58,11 @@ exports.createOrganization = asyncHandler(async (req, res) => {
       })
         .then(async (org) => {
           if (org) {
-            const rollAdminData = await Roll.findOne({
+            const rollAdminData = await Roll.create({
               rName: "admin",
+              rAccess: "F",
+              rMenu: [],
+              rOrg: org._id,
             });
             const userEmail = await User.findOne({
               email: email,
@@ -68,16 +72,20 @@ exports.createOrganization = asyncHandler(async (req, res) => {
             });
             if (userEmail) {
               if (userEmail.email === email) {
-                return res
-                  .status(400)
-                  .json({ msg: "Dublicate Email Id. Pls Change Email." });
+                return res.status(400).json({
+                  msg: "Dublicate Email Id. Pls Change Email.",
+                  data: {},
+                  success: false,
+                });
               }
             }
             if (userPhoneNO) {
               if (userPhoneNO.phoneNo === phoneNo) {
-                return res
-                  .status(400)
-                  .json({ msg: "Dublicate phoneNo. Pls Change phoneNo." });
+                return res.status(400).json({
+                  msg: "Dublicate phoneNo. Pls Change phoneNo.",
+                  data: {},
+                  success: false,
+                });
               }
             }
 
@@ -93,10 +101,12 @@ exports.createOrganization = asyncHandler(async (req, res) => {
               password: hashedPassword,
               Roll: rollAdminData._id,
             }).then((user) => {
-              res.status(201).json({
-                msg: "Organization & User Create successfully!",
-                data: { organization: org, user: user },
-                success: false,
+              Organization.find().then((organizationDataList) => {
+                res.status(201).json({
+                  msg: "Organization & User Create successfully!",
+                  data: { organization: organizationDataList, user: user },
+                  success: true,
+                });
               });
             });
           }
@@ -105,9 +115,13 @@ exports.createOrganization = asyncHandler(async (req, res) => {
           console.error("Error creating user:", err);
         });
     } else {
-      const rollMemberData = await Roll.findOne({
+      const rollMemberData = await Roll.create({
         rName: "member",
+        rAccess: "H",
+        rMenu: [],
+        rOrg: organizationData._id,
       });
+
       User.create({
         Organization: organizationData._id,
         name,
@@ -120,10 +134,12 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         userAddress,
         Roll: rollMemberData._id,
       }).then((user) => {
-        res.status(201).json({
-          msg: "User Create Succesfully!",
-          data: { organization: organizationData, user: user },
-          success: false,
+        Organization.find().then((organizationDataList) => {
+          res.status(201).json({
+            msg: "Organization & User Create successfully!",
+            data: { organization: organizationDataList, user: user },
+            success: true,
+          });
         });
       });
     }
