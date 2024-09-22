@@ -11,6 +11,7 @@ const rollSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    // rMenu: { type: Array, default: [] },
     rOrg: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",

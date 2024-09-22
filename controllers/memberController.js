@@ -50,6 +50,7 @@ const createMember = asyncHandler(async (req, res) => {
 
     let rollMemberData = await rollModel.findOne({
       rName: "viewer",
+      rOrg: orgId,
     });
     try {
       if (
@@ -60,14 +61,7 @@ const createMember = asyncHandler(async (req, res) => {
           .status(400)
           .json({ msg: "Invalid Organization or User ID.", status: false });
       }
-      if (!rollMemberData) {
-        rollMemberData = await rollModel.create({
-          rName: "viewer",
-          rAccess: "R",
-          rMenu: [],
-          rOrg: orgId,
-        });
-      }
+
       const member = await memberModel.findOne({
         Organization: orgId,
         User: userId,
@@ -98,7 +92,7 @@ const createMember = asyncHandler(async (req, res) => {
         userAddress,
         Roll: rollId ? rollId : rollMemberData._id,
       });
-      const rollMemberDataList = await rollModel.find();
+      // const rollMemberDataList = await rollModel.find({});
       const memberDataList = await memberModel
         .find({ Organization: newMember?.Organization, User: newMember?.User })
         .populate("Organization User Roll");
@@ -107,11 +101,11 @@ const createMember = asyncHandler(async (req, res) => {
           .status(404)
           .json({ msg: "Member Not Found.", status: false });
       }
-      const newMemberData = {
-        rollList: rollMemberDataList,
-        memberDataList: memberDataList,
-      };
-      const jsonString = JSON.stringify(newMemberData);
+      // const newMemberData = {
+      //   rollList: rollMemberDataList,
+      //   memberDataList: memberDataList,
+      // };
+      const jsonString = JSON.stringify(memberDataList);
       const encryptedData = encrypt(jsonString);
       res.status(200).json({
         msg: "Member Create Successfully!",

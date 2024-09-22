@@ -4,9 +4,9 @@ const { encrypt } = require("../config/EncryptionDecryption");
 
 const createMenu = asyncHandler(async (req, res) => {
   try {
-    const { mName, mLocationPath, mIcon } = req.body;
+    const { mName, mLocationPath, mIcon, mOrg } = req.body;
 
-    if (!mName || !mLocationPath || !mIcon) {
+    if (!mName || !mLocationPath || !mIcon || !mOrg) {
       res.status(400).json({
         data: {},
         message: "All fields are mandatory",
@@ -17,6 +17,7 @@ const createMenu = asyncHandler(async (req, res) => {
     const menuData = await Menu.findOne({
       mName: mName,
       mLocationPath: mLocationPath,
+      mOrg: mOrg,
     });
 
     if (menuData?.mName === mName) {
@@ -29,8 +30,8 @@ const createMenu = asyncHandler(async (req, res) => {
         msg: "Dublicate MenuLocationPath. Pls Change MenuLocationPath.",
       });
     }
-    await Menu.create({ mName, mLocationPath, mIcon });
-    const menuList = await Menu.find();
+    await Menu.create({ mName, mLocationPath, mIcon, mOrg });
+    const menuList = await Menu.find({ mOrg: mOrg });
     const jsonString = JSON.stringify(menuList);
     const encryptedData = encrypt(jsonString);
     res.status(201).json({
@@ -48,7 +49,8 @@ const createMenu = asyncHandler(async (req, res) => {
 });
 
 const getAllMenu = asyncHandler(async (req, res) => {
-  const menu = await Menu.find();
+  const { orgId } = req.params;
+  const menu = await Menu.find({ mOrg: orgId });
   const jsonString = JSON.stringify(menu);
   const encryptedData = encrypt(jsonString);
   res.status(201).json({

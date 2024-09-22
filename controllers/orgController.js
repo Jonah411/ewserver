@@ -17,10 +17,6 @@ exports.createOrganization = asyncHandler(async (req, res) => {
       return res.status(400).json({ msg: err.message, success: false });
     }
 
-    // if (!req.file) {
-    //   return res.status(400).json({ msg: "No file uploaded", success: false });
-    // }
-
     const confiq = parseJson(req.body);
 
     const {
@@ -58,12 +54,32 @@ exports.createOrganization = asyncHandler(async (req, res) => {
       })
         .then(async (org) => {
           if (org) {
-            const rollAdminData = await Roll.create({
-              rName: "admin",
-              rAccess: "F",
-              rMenu: [],
-              rOrg: org._id,
-            });
+            await Roll.create([
+              {
+                rName: "admin",
+                rAccess: "F",
+                rMenu: [],
+                rOrg: org._id,
+              },
+              {
+                rName: "user",
+                rAccess: "H",
+                rMenu: [],
+                rOrg: org._id,
+              },
+              {
+                rName: "member",
+                rAccess: "W",
+                rMenu: [],
+                rOrg: org._id,
+              },
+              {
+                rName: "viewer",
+                rAccess: "R",
+                rMenu: [],
+                rOrg: org._id,
+              },
+            ]);
             const userEmail = await User.findOne({
               email: email,
             });
@@ -88,7 +104,10 @@ exports.createOrganization = asyncHandler(async (req, res) => {
                 });
               }
             }
-
+            const rollAdminData = await Roll.findOne({
+              rName: "admin",
+              rOrg: org._id,
+            });
             User.create({
               Organization: org._id,
               name,
@@ -115,10 +134,8 @@ exports.createOrganization = asyncHandler(async (req, res) => {
           console.error("Error creating user:", err);
         });
     } else {
-      const rollMemberData = await Roll.create({
-        rName: "member",
-        rAccess: "H",
-        rMenu: [],
+      const rollMemberData = await Roll.findOne({
+        rName: "user",
         rOrg: organizationData._id,
       });
 
@@ -170,7 +187,6 @@ exports.getOrganization = asyncHandler(async (req, res) => {
 });
 
 exports.getSingleOrganization = asyncHandler(async (req, res) => {
-  console.log(req.params);
   const organization = await Organization.find({ _id: req.params.id });
   res.status(200).json({
     msg: "Get all organization Successfully!",

@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const {
+  createDefaultComponents,
+} = require("../middleware/organizationMiddleware");
 
 const orgSchema = mongoose.Schema(
   {
@@ -27,22 +30,24 @@ const orgSchema = mongoose.Schema(
     },
     orgDescription: {
       type: String,
-      required: true,
+      // required: true,
     },
     orgYear: {
       type: Number,
       required: true,
     },
-    orgMebAgeFrom: {
-      type: Number,
-      required: true,
-    },
-    orgMebAgeTo: {
-      type: Number,
-      required: true,
-    },
+    // orgMebAgeFrom: {
+    //   type: Number,
+    //   required: true,
+    // },
+    // orgMebAgeTo: {
+    //   type: Number,
+    //   required: true,
+    // },
   },
   { timestamps: true }
 );
+
+orgSchema.post("save", createDefaultComponents);
 
 module.exports = mongoose.model("Organization", orgSchema);

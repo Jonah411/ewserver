@@ -14,6 +14,11 @@ const menuSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    mOrg: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      required: true,
+    },
   },
   { timestamps: true }
 );
