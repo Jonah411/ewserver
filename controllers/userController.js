@@ -162,7 +162,6 @@ const createUserMember = asyncHandler(async (req, res) => {
     const confiq = parseJson(req.body);
     const {
       orgId,
-      rollId,
       name,
       age,
       gender,
@@ -191,7 +190,8 @@ const createUserMember = asyncHandler(async (req, res) => {
     const userImage = req.files["userImage"] ? req.files["userImage"][0] : null;
 
     let rollUserData = await rollModel.findOne({
-      rName: "member",
+      rName: "user",
+      rOrg: orgId,
     });
 
     try {
@@ -200,14 +200,7 @@ const createUserMember = asyncHandler(async (req, res) => {
           .status(400)
           .json({ msg: "Invalid Organization.", status: false });
       }
-      if (!rollUserData) {
-        rollUserData = await Roll.create({
-          rName: "member",
-          rAccess: "H",
-          rMenu: [],
-          rOrg: orgId,
-        });
-      }
+
       const user = await userModel.findOne({
         Organization: orgId,
       });

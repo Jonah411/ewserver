@@ -6,8 +6,6 @@ const createRoll = asyncHandler(async (req, res) => {
   try {
     const { rName, fAccess } = req.body;
 
-    console.log("Request Body:", req.body);
-
     if (!rName || !fAccess) {
       res.status(400).json({
         data: {},
@@ -78,7 +76,7 @@ const updateAllRoll = asyncHandler(async (req, res) => {
   const updatedRolls = await Promise.all(
     rollData.map(async (li) => {
       const rMenu = li?.rMenu;
-      const roll = await Roll.findById(li?._id);
+      const roll = await Roll.findById({ _id: li?._id, rOrg: li?.rOrg });
 
       if (!roll) {
         throw new Error(`Roll with ID ${li?._id} not found`);

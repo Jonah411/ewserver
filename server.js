@@ -21,12 +21,18 @@ app.use("/app/user/", require("./routes/userRoutes"));
 app.use("/app/auth", require("./routes/authRoutes"));
 app.use("/app/roll", require("./routes/rollRoutes"));
 app.use("/app/org/", require("./routes/orgRoutes"));
+app.use("/app/components/", require("./routes/componentsRoutes"));
 app.use(errorHandler);
 
 app.use("/app/auth/org", authMiddleware, require("./routes/authOrgRoutes"));
 app.use("/app/auth/user", authMiddleware, require("./routes/userAuthRoutes"));
 app.use("/app/auth/menu", authMiddleware, require("./routes/menuRoutes"));
 app.use("/app/auth/member", authMiddleware, require("./routes/memberRoutes"));
+app.use(
+  "/app/auth/components",
+  authMiddleware,
+  require("./routes/componentsAuthRoutes")
+);
 
 app.listen(port, () => {
   console.log(`server running on ${port}`);

@@ -10,7 +10,7 @@ const router = express.Router();
 //router.post("/createroll", createRoll);
 router.route("/createmenu").post(createMenu);
 router.route("/getallrolls/:id").get(getAllRoll);
-router.route("/getallmenus").get(getAllMenu);
+router.route("/getallmenus/:orgId").get(getAllMenu);
 
 router.put("/updateroll/:id", updateRoll);
 router.post("/updateallroll", updateAllRoll);
