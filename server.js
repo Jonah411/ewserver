@@ -29,6 +29,11 @@ app.use("/app/auth/user", authMiddleware, require("./routes/userAuthRoutes"));
 app.use("/app/auth/menu", authMiddleware, require("./routes/menuRoutes"));
 app.use("/app/auth/member", authMiddleware, require("./routes/memberRoutes"));
 app.use(
+  "/app/auth/position",
+  authMiddleware,
+  require("./routes/positionRoutes")
+);
+app.use(
   "/app/auth/components",
   authMiddleware,
   require("./routes/componentsAuthRoutes")

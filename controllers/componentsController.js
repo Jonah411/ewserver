@@ -63,7 +63,6 @@ const getComponentsByOrgId = async (req, res) => {
 
   try {
     const components = await componentsModel.find({ cOrg: orgId });
-    console.log(components);
 
     if (components.length === 0) {
       return res.status(201).json({

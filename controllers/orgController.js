@@ -6,6 +6,10 @@ const { gfs } = require("../config/LogoUpload");
 const logoHandler = require("../config/LogoUpload");
 const parseJson = require("../helper/JsonHelper");
 const bcrypt = require("bcryptjs");
+const {
+  generateOrgCustomID,
+  generateUserCustomID,
+} = require("../config/generateCustomID");
 
 exports.currentOrg = asyncHandler(async (req, res) => {
   res.status(200).json("user");
@@ -40,6 +44,8 @@ exports.createOrganization = asyncHandler(async (req, res) => {
     const userImage = req.files["userImage"] ? req.files["userImage"][0] : null;
 
     if (!organizationData) {
+      const customOrgID = await generateOrgCustomID();
+
       Organization.create({
         orgName,
         orgPlace,
@@ -51,6 +57,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         orgMebAgeFrom,
         orgMebAgeTo,
         orgDisplayName,
+        orgId: customOrgID,
       })
         .then(async (org) => {
           if (org) {
@@ -108,6 +115,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
               rName: "admin",
               rOrg: org._id,
             });
+            const customUserID = await generateUserCustomID();
             User.create({
               Organization: org._id,
               name,
@@ -119,6 +127,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
               userImage: userImage?.filename,
               password: hashedPassword,
               Roll: rollAdminData._id,
+              userId: customUserID,
             }).then((user) => {
               Organization.find().then((organizationDataList) => {
                 res.status(201).json({
@@ -138,7 +147,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         rName: "user",
         rOrg: organizationData._id,
       });
-
+      const customUserID = await generateUserCustomID();
       User.create({
         Organization: organizationData._id,
         name,
@@ -150,6 +159,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         password: hashedPassword,
         userAddress,
         Roll: rollMemberData._id,
+        userId: customUserID,
       }).then((user) => {
         Organization.find().then((organizationDataList) => {
           res.status(201).json({

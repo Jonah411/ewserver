@@ -7,6 +7,7 @@ const rollModel = require("../models/rollModel");
 const memberModel = require("../models/memberModel");
 const { encrypt } = require("../config/EncryptionDecryption");
 const { default: mongoose } = require("mongoose");
+const { generateMemberCustomID } = require("../config/generateCustomID");
 
 const createMember = asyncHandler(async (req, res) => {
   logoHandler(req, res, async (err) => {
@@ -49,7 +50,7 @@ const createMember = asyncHandler(async (req, res) => {
       : null;
 
     let rollMemberData = await rollModel.findOne({
-      rName: "viewer",
+      rName: "member",
       rOrg: orgId,
     });
     try {
@@ -62,23 +63,26 @@ const createMember = asyncHandler(async (req, res) => {
           .json({ msg: "Invalid Organization or User ID.", status: false });
       }
 
-      const member = await memberModel.findOne({
+      const memberEmail = await memberModel.findOne({
         Organization: orgId,
-        User: userId,
+        email: email,
       });
-      if (member) {
-        if (member.email === email) {
-          return res
-            .status(400)
-            .json({ msg: "Dublicate Email Id. Pls Change Email." });
-        }
-        if (member.phoneNo === phoneNo) {
-          return res
-            .status(400)
-            .json({ msg: "Dublicate Phone No. Pls Change PhoneNo." });
-        }
-      }
+      const memberphone = await memberModel.findOne({
+        Organization: orgId,
+        phoneNo: phoneNo,
+      });
 
+      if (memberEmail?.email === email) {
+        return res
+          .status(400)
+          .json({ msg: "Dublicate Email Id. Pls Change Email." });
+      }
+      if (Number(memberphone?.phoneNo) === Number(phoneNo)) {
+        return res
+          .status(400)
+          .json({ msg: "Dublicate Phone No. Pls Change PhoneNo." });
+      }
+      const customMemberID = await generateMemberCustomID();
       const newMember = await memberModel.create({
         Organization: userData.Organization,
         User: userData._id,
@@ -91,6 +95,7 @@ const createMember = asyncHandler(async (req, res) => {
         password: hashedPassword,
         userAddress,
         Roll: rollId ? rollId : rollMemberData._id,
+        memberId: customMemberID,
       });
       // const rollMemberDataList = await rollModel.find({});
       const memberDataList = await memberModel
@@ -151,7 +156,37 @@ const getAllOrgUserMember = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllOrgMember = asyncHandler(async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.orgId)) {
+      return res
+        .status(400)
+        .json({ msg: "Invalid Organization ID.", status: false });
+    }
+
+    const member = await memberModel
+      .find({ Organization: req.params.orgId })
+      .populate("Organization User Roll");
+
+    if (!member) {
+      return res.status(404).json({ msg: "member Not Found.", status: false });
+    }
+
+    const jsonString = JSON.stringify(member);
+    const encryptedData = encrypt(jsonString);
+    res.status(200).json({
+      msg: "Get All Org User Successfully!",
+      status: true,
+      data: encryptedData,
+    });
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    res.status(500).json({ msg: error.message, status: false });
+  }
+});
+
 module.exports = {
   createMember,
   getAllOrgUserMember,
+  getAllOrgMember,
 };
