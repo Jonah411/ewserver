@@ -45,7 +45,10 @@ const memberSchema = mongoose.Schema(
     userAddress: {
       type: String,
     },
-
+    memberId: {
+      type: String,
+      required: true,
+    },
     Roll: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Roll",

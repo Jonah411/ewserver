@@ -10,6 +10,7 @@ const { encrypt } = require("../config/EncryptionDecryption");
 const userModel = require("../models/userModel");
 const rollModel = require("../models/rollModel");
 const parseJson = require("../helper/JsonHelper");
+const { generateUserCustomID } = require("../config/generateCustomID");
 
 const getAllUser = asyncHandler(async (req, res) => {
   const user = await User.find();
@@ -216,6 +217,7 @@ const createUserMember = asyncHandler(async (req, res) => {
             .json({ msg: "Dublicate Phone No. Pls Change Phone No." });
         }
       }
+      const customUserID = await generateUserCustomID();
 
       const newUser = await userModel.create({
         Organization: userData.Organization,
@@ -228,6 +230,7 @@ const createUserMember = asyncHandler(async (req, res) => {
         password: hashedPassword,
         userAddress,
         Roll: rollUserData._id,
+        userId: customUserID,
       });
       const userDataList = await userModel
         .find({ Organization: newUser?.Organization })

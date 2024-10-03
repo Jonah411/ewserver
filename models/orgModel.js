@@ -36,6 +36,10 @@ const orgSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    orgId: {
+      type: String,
+      required: true,
+    },
     // orgMebAgeFrom: {
     //   type: Number,
     //   required: true,
