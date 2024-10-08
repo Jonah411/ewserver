@@ -11,6 +11,10 @@ const userModel = require("../models/userModel");
 const rollModel = require("../models/rollModel");
 const parseJson = require("../helper/JsonHelper");
 const { generateUserCustomID } = require("../config/generateCustomID");
+const {
+  SendVerificationCode,
+  sendWelcomeEmail,
+} = require("../middleware/Email");
 
 const getAllUser = asyncHandler(async (req, res) => {
   const user = await User.find();
@@ -35,6 +39,9 @@ const createUser = asyncHandler(async (req, res) => {
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationEmailCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     // Create the user
     const user = await User.create({
@@ -46,8 +53,9 @@ const createUser = asyncHandler(async (req, res) => {
       phoneNo,
       password: hashedPassword,
       Roll: rollData._id,
+      verificationEmailCode: verificationEmailCode,
     });
-
+    SendVerificationCode(email, verificationEmailCode);
     res.status(201).json({
       data: user,
       message: "User created successfully",
@@ -218,7 +226,9 @@ const createUserMember = asyncHandler(async (req, res) => {
         }
       }
       const customUserID = await generateUserCustomID();
-
+      const verificationEmailCode = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
       const newUser = await userModel.create({
         Organization: userData.Organization,
         name,
@@ -231,21 +241,34 @@ const createUserMember = asyncHandler(async (req, res) => {
         userAddress,
         Roll: rollUserData._id,
         userId: customUserID,
+        verificationEmailCode: verificationEmailCode,
       });
       const userDataList = await userModel
-        .find({ Organization: newUser?.Organization })
-        .populate("Organization Roll");
+        .findOne({ Organization: newUser?.Organization, email: newUser?.email })
+        .populate("Organization Roll", "_id")
+        .select("_id userId email phoneNo Organization");
       if (!userDataList) {
         return res.status(404).json({ msg: "User Not Found.", status: false });
       }
-
-      const jsonString = JSON.stringify(userDataList);
-      const encryptedData = encrypt(jsonString);
-      res.status(200).json({
-        msg: "User Create Successfully!",
-        status: true,
-        data: encryptedData,
-      });
+      const mailResponse = await SendVerificationCode(
+        email,
+        verificationEmailCode
+      );
+      if (mailResponse) {
+        const jsonString = JSON.stringify(userDataList);
+        const encryptedData = encrypt(jsonString);
+        res.status(200).json({
+          msg: "OTP send to Mail Successfully!",
+          status: true,
+          data: encryptedData,
+        });
+      } else {
+        res.status(400).json({
+          msg: "OTP not send!",
+          status: true,
+          data: encryptedData,
+        });
+      }
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ msg: error.message, status: false });
@@ -253,6 +276,35 @@ const createUserMember = asyncHandler(async (req, res) => {
   });
 });
 
+const createUserMemberOTP = asyncHandler(async (req, res) => {
+  logoHandler(req, res, async (err) => {
+    const confiq = parseJson(req.body);
+    const { email, phoneNo, _id, verificationEmailCode, Organization } = confiq;
+    const user = await userModel.findOne({
+      _id: _id,
+      email: email,
+      Organization: Organization?._id,
+      verificationEmailCode: verificationEmailCode,
+    });
+    if (!user) {
+      return res.status(400).json({ success: false, msg: "Inavlid OTP" });
+    }
+    user.isEmailVerified = true;
+    user.verificationEmailCode = undefined;
+    await user.save();
+    await sendWelcomeEmail(user.email, user.name);
+    const userDataList = await userModel
+      .find({ Organization: Organization?._id })
+      .populate("Organization Roll");
+    const jsonString = JSON.stringify(userDataList);
+    const encryptedData = encrypt(jsonString);
+    res.status(200).json({
+      msg: "OTP send to Mail Successfully!",
+      status: true,
+      data: encryptedData,
+    });
+  });
+});
 module.exports = {
   getAllUser,
   createUser,
@@ -263,4 +315,5 @@ module.exports = {
   getSingleUser,
   getAllOrgUser,
   createUserMember,
+  createUserMemberOTP,
 };

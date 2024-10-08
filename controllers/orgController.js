@@ -144,7 +144,7 @@ exports.createOrganization = asyncHandler(async (req, res) => {
         });
     } else {
       const rollMemberData = await Roll.findOne({
-        rName: "user",
+        rName: "viewer",
         rOrg: organizationData._id,
       });
       const customUserID = await generateUserCustomID();

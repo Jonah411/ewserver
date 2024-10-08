@@ -50,7 +50,7 @@ const createMember = asyncHandler(async (req, res) => {
       : null;
 
     let rollMemberData = await rollModel.findOne({
-      rName: "member",
+      rName: "viewer",
       rOrg: orgId,
     });
     try {
