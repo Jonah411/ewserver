@@ -21,6 +21,14 @@ const memberSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    dob: {
+      type: Date,
+      default: Date.now,
+    },
+    marraigedate: {
+      type: Date,
+      default: Date.now,
+    },
     gender: {
       type: String,
       required: true,

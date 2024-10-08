@@ -19,6 +19,19 @@ const userSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    dob: {
+      type: Date,
+      default: Date.now,
+    },
+    marraigedate: {
+      type: Date,
+      default: Date.now,
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationEmailCode: String,
     gender: {
       type: String,
       required: true,
@@ -55,5 +68,20 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.post("save", function (doc) {
+  if (!doc.isEmailVerified) {
+    setTimeout(async () => {
+      try {
+        await mongoose.model("User").deleteOne({ _id: doc._id });
+        console.log(
+          `User ${doc._id} deleted after 60 seconds due to unverified email.`
+        );
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
+    }, 60000); // 60 seconds
+  }
+});
 
 module.exports = mongoose.model("User", userSchema);
