@@ -1,8 +1,8 @@
+const createTransporter = require("../config/EmailConfiq");
 const {
   Verification_Email_Template,
   Welcome_Email_Template,
 } = require("../config/EmailTemplate");
-const createTransporter = require("./email.confiq");
 
 const SendVerificationCode = async (email, verificationCode) => {
   const transporter = createTransporter();
