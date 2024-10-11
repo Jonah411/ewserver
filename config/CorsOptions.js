@@ -9,6 +9,8 @@ const allowedOrigins = [
   "https://easyproduct.netlify.app",
   "https://easyproduct.onrender.com/",
   "https://easyproduct.onrender.com",
+  "https://orgtypeworkeasy.netlify.app/",
+  "https://orgtypeworkeasy.netlify.app",
 ];
 
 const corsOptions = {
