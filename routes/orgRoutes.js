@@ -5,20 +5,16 @@ const {
   getLogo,
   getOrganization,
   getSingleOrganization,
+  getAllOrganization,
 } = require("../controllers/orgController");
-// const { upload } = require("../config/multerConfig");
-// const validateLogoImageDimensions = require("../middleware/validateLogoImageDimensions ");
+
 const router = express.Router();
 
-// // router.post("/create", upload, validateLogoImageDimensions, createOrganization);
-router.route("/createorg").post(
-  // upload.single("orgLogo"),
-  //   validateLogoImageDimensions,
-  createOrganization
-);
+router.route("/createorg").post(createOrganization);
 
 router.get("/organizations/logo/:filename", getLogo);
 router.get("/getorg", getOrganization);
+router.get("/getAllorg", getAllOrganization);
 router.get("/getorg/:id", getSingleOrganization);
 
 module.exports = router;

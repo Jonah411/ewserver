@@ -1,5 +1,6 @@
 const memberModel = require("../models/memberModel");
 const orgModel = require("../models/orgModel");
+const orgTypeModel = require("../models/orgTypeModel");
 const Position = require("../models/positionModel");
 const userModel = require("../models/userModel");
 
@@ -83,9 +84,31 @@ const generatePositionCustomID = async () => {
   return `P${year}${month}${day}${String(number).padStart(4, "0")}`;
 };
 
+const generateOrgTypeCustomID = async () => {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  const lastOT = await orgTypeModel
+    .findOne({
+      tId: { $regex: `^OT${year}${month}${day}` },
+    })
+    .sort({ createdAt: -1 });
+
+  let number = 1;
+  if (lastOT) {
+    const lastID = lastOT.tId;
+    number = parseInt(lastID?.slice(-4)) + 1;
+  }
+
+  return `U${year}${month}${day}${String(number).padStart(4, "0")}`;
+};
+
 module.exports = {
   generateOrgCustomID,
   generateMemberCustomID,
   generateUserCustomID,
   generatePositionCustomID,
+  generateOrgTypeCustomID,
 };

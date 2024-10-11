@@ -8,6 +8,7 @@ const memberModel = require("../models/memberModel");
 const { encrypt } = require("../config/EncryptionDecryption");
 const { default: mongoose } = require("mongoose");
 const { generateMemberCustomID } = require("../config/generateCustomID");
+const { SendVerificationCode } = require("../middleware/Email");
 
 const createMember = asyncHandler(async (req, res) => {
   logoHandler(req, res, async (err) => {
@@ -28,6 +29,9 @@ const createMember = asyncHandler(async (req, res) => {
       encPassword,
       userAddress,
       mImageFileName,
+      marraigestatus,
+      dob,
+      marraigedate,
     } = confiq;
     let hashedPassword;
     if (encPassword) {
@@ -83,6 +87,9 @@ const createMember = asyncHandler(async (req, res) => {
           .json({ msg: "Dublicate Phone No. Pls Change PhoneNo." });
       }
       const customMemberID = await generateMemberCustomID();
+      const verificationEmailCode = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString();
       const newMember = await memberModel.create({
         Organization: userData.Organization,
         User: userData._id,
@@ -91,32 +98,62 @@ const createMember = asyncHandler(async (req, res) => {
         gender,
         email,
         phoneNo,
+        marraigestatus,
+        marraigedate,
+        dob,
         memberImage: mImageFileName ? mImageFileName : memberImage?.filename,
         password: hashedPassword,
         userAddress,
         Roll: rollId ? rollId : rollMemberData._id,
         memberId: customMemberID,
+        verificationEmailCode:
+          userData?.email === email ? "" : verificationEmailCode,
+        isEmailVerified: userData?.email === email ? true : false,
       });
       // const rollMemberDataList = await rollModel.find({});
       const memberDataList = await memberModel
-        .find({ Organization: newMember?.Organization, User: newMember?.User })
-        .populate("Organization User Roll");
+        .findOne({
+          Organization: newMember?.Organization,
+          User: newMember?.User,
+          email: email,
+        })
+        .populate("Organization User Roll", "_id")
+        .select("_id userId email phoneNo Organization");
       if (!memberDataList) {
         return res
           .status(404)
           .json({ msg: "Member Not Found.", status: false });
       }
-      // const newMemberData = {
-      //   rollList: rollMemberDataList,
-      //   memberDataList: memberDataList,
-      // };
-      const jsonString = JSON.stringify(memberDataList);
-      const encryptedData = encrypt(jsonString);
-      res.status(200).json({
-        msg: "Member Create Successfully!",
-        status: true,
-        data: encryptedData,
-      });
+
+      if (userData?.email !== email) {
+        const mailResponse = await SendVerificationCode(
+          email,
+          verificationEmailCode
+        );
+        if (mailResponse) {
+          const jsonString = JSON.stringify(memberDataList);
+          const encryptedData = encrypt(jsonString);
+          res.status(200).json({
+            msg: "OTP send to Mail Successfully!",
+            status: true,
+            data: encryptedData,
+          });
+        } else {
+          res.status(400).json({
+            msg: "OTP not send!",
+            status: true,
+            data: encryptedData,
+          });
+        }
+      } else {
+        const jsonString = JSON.stringify(memberDataList);
+        const encryptedData = encrypt(jsonString);
+        res.status(200).json({
+          msg: "OTP send to Mail Successfully!",
+          status: true,
+          data: encryptedData,
+        });
+      }
     } catch (error) {
       console.error("Error fetching members:", error);
       res.status(500).json({ msg: error.message, status: false });

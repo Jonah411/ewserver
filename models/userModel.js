@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+const userTimeouts = {};
+
 const userSchema = mongoose.Schema(
   {
     Organization: {
@@ -19,13 +21,15 @@ const userSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+    marraigestatus: {
+      type: String,
+      default: "Single",
+    },
     dob: {
       type: Date,
-      default: Date.now,
     },
     marraigedate: {
       type: Date,
-      default: Date.now,
     },
     isEmailVerified: {
       type: Boolean,
@@ -70,18 +74,32 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.post("save", function (doc) {
+  // If email is not verified, start a deletion timeout
   if (!doc.isEmailVerified) {
-    setTimeout(async () => {
+    userTimeouts[doc._id] = setTimeout(async () => {
       try {
-        await mongoose.model("User").deleteOne({ _id: doc._id });
-        console.log(
-          `User ${doc._id} deleted after 60 seconds due to unverified email.`
-        );
+        const user = await mongoose.model("User").findById(doc._id);
+        if (!user.isEmailVerified) {
+          await mongoose.model("User").deleteOne({ _id: doc._id });
+          console.log(
+            `User ${doc._id} deleted after 60 seconds due to unverified email.`
+          );
+        }
       } catch (error) {
         console.error("Error deleting user:", error);
       }
     }, 60000); // 60 seconds
   }
+});
+
+// Pre-save hook to check if email is verified and clear timeout if so
+userSchema.pre("save", function (next) {
+  if (this.isEmailVerified && userTimeouts[this._id]) {
+    clearTimeout(userTimeouts[this._id]); // Cancel deletion
+    delete userTimeouts[this._id]; // Remove from the timeout store
+    console.log(`User ${this._id} email verified. Deletion canceled.`);
+  }
+  next();
 });
 
 module.exports = mongoose.model("User", userSchema);

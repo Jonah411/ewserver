@@ -40,14 +40,12 @@ const orgSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    // orgMebAgeFrom: {
-    //   type: Number,
-    //   required: true,
-    // },
-    // orgMebAgeTo: {
-    //   type: Number,
-    //   required: true,
-    // },
+    orgType: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "OrgType",
+      },
+    ],
   },
   { timestamps: true }
 );

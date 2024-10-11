@@ -15,6 +15,7 @@ const {
   SendVerificationCode,
   sendWelcomeEmail,
 } = require("../middleware/Email");
+const memberModel = require("../models/memberModel");
 
 const getAllUser = asyncHandler(async (req, res) => {
   const user = await User.find();
@@ -22,7 +23,18 @@ const getAllUser = asyncHandler(async (req, res) => {
 });
 
 const createUser = asyncHandler(async (req, res) => {
-  const { orgId, name, age, gender, email, phoneNo, password } = req.body;
+  const {
+    orgId,
+    name,
+    age,
+    gender,
+    email,
+    phoneNo,
+    password,
+    marraigestatus,
+    marraigedate,
+    dob,
+  } = req.body;
 
   try {
     // Find organization data
@@ -52,6 +64,9 @@ const createUser = asyncHandler(async (req, res) => {
       email,
       phoneNo,
       password: hashedPassword,
+      marraigestatus,
+      marraigedate,
+      dob,
       Roll: rollData._id,
       verificationEmailCode: verificationEmailCode,
     });
@@ -199,7 +214,7 @@ const createUserMember = asyncHandler(async (req, res) => {
     const userImage = req.files["userImage"] ? req.files["userImage"][0] : null;
 
     let rollUserData = await rollModel.findOne({
-      rName: "user",
+      rName: "viewer",
       rOrg: orgId,
     });
 
@@ -299,10 +314,54 @@ const createUserMemberOTP = asyncHandler(async (req, res) => {
     const jsonString = JSON.stringify(userDataList);
     const encryptedData = encrypt(jsonString);
     res.status(200).json({
-      msg: "OTP send to Mail Successfully!",
+      msg: "Organization and User Successfully Created.!",
       status: true,
       data: encryptedData,
     });
+  });
+});
+
+const createMemberOTP = asyncHandler(async (req, res) => {
+  logoHandler(req, res, async (err) => {
+    const confiq = parseJson(req.body);
+
+    const { email, phoneNo, _id, verificationEmailCode, Organization, User } =
+      confiq;
+    const member = await memberModel.findOne({
+      _id: _id,
+      email: email,
+      Organization: Organization?._id,
+      User: User?._id,
+      verificationEmailCode: verificationEmailCode,
+    });
+
+    if (!member) {
+      return res.status(400).json({ success: false, msg: "Inavlid OTP" });
+    }
+    member.isEmailVerified = true;
+    member.verificationEmailCode = "";
+    await member.save();
+    await sendWelcomeEmail(member.email, member.name);
+    const memberDataList = await memberModel
+      .find({
+        Organization: Organization?._id,
+        User: User?._id,
+      })
+      .populate("Organization User Roll");
+    const jsonString = JSON.stringify(memberDataList);
+    const encryptedData = encrypt(jsonString);
+    res.status(200).json({
+      msg: "Member Create Successfully!",
+      status: true,
+      data: encryptedData,
+    });
+    // const jsonString = JSON.stringify(userDataList);
+    // const encryptedData = encrypt(jsonString);
+    // res.status(200).json({
+    //   msg: "OTP send to Mail Successfully!",
+    //   status: true,
+    //   data: encryptedData,
+    // });
   });
 });
 module.exports = {
@@ -316,4 +375,5 @@ module.exports = {
   getAllOrgUser,
   createUserMember,
   createUserMemberOTP,
+  createMemberOTP,
 };

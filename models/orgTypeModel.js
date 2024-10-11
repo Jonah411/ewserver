@@ -11,11 +11,18 @@ const orgtypeSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    tYear: {
+    tLogo: {
       type: String,
-      required: true,
     },
     tDescription: {
+      type: String,
+      // required: true,
+    },
+    tYear: {
+      type: Number,
+      required: true,
+    },
+    tId: {
       type: String,
       required: true,
     },
@@ -27,7 +34,14 @@ const orgtypeSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    // rMenu: { type: Array, default: [] },
+    tAddress: {
+      type: String,
+      required: true,
+    },
+    tGender: {
+      type: String,
+      required: true,
+    },
     tOrg: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
@@ -39,13 +53,6 @@ const orgtypeSchema = mongoose.Schema(
         ref: "Member",
       },
     ],
-
-    // tPosition: [
-    //   {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Member",
-    //   },
-    // ],
   },
   { timestamps: true }
 );

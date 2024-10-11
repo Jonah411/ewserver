@@ -38,7 +38,8 @@ app.use(
   authMiddleware,
   require("./routes/componentsAuthRoutes")
 );
-
+app.use("/app/auth/orgType", authMiddleware, require("./routes/orgTypeRoutes"));
+app.use("/app/otp", require("./routes/commonRoutes"));
 app.listen(port, () => {
   console.log(`server running on ${port}`);
 });
