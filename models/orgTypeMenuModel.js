@@ -19,11 +19,13 @@ const orgtypemenuSchema = mongoose.Schema(
       ref: "Organization",
       required: true,
     },
-    OrgType: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "OrgType",
-      required: true,
-    },
+    OrgType: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "OrgType",
+        required: true,
+      },
+    ],
   },
   { timestamps: true }
 );

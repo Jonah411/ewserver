@@ -50,7 +50,7 @@ const loginUser = asyncHandler(async (req, res) => {
     expiresIn: "1h",
   });
   const refreshToken = jwt.sign({ username: userData.name }, refreshSecret, {
-    expiresIn: "7d",
+    expiresIn: "1d",
   });
   res.status(200).json({
     msg: "Login Successfull!",
@@ -88,4 +88,57 @@ const currentUser = asyncHandler(async (req, res) => {
   res.status(200).json("user");
 });
 
-module.exports = { registerUser, loginUser, currentUser, refreshToken, logout };
+const loginOrgType = asyncHandler(async (req, res) => {
+  const { org, orgType, email, password } = req.body;
+  let userData = await Member.findOne({
+    Organization: org,
+    orgtype: { $in: [orgType] },
+    email: email,
+  }).populate("Organization");
+
+  if (!userData) {
+    return res.status(400).json({ msg: "mismatch Organization and Email" });
+  }
+  const organizationId = new ObjectId(org);
+  const orgTypeId = new ObjectId(orgType);
+
+  if (!userData.Organization._id.equals(organizationId)) {
+    return res.status(400).json({ msg: "Invalid organization credentials" });
+  }
+  const orgTypeMatch = userData.orgtype.some((orgType) =>
+    orgType.equals(orgTypeId)
+  );
+
+  if (!orgTypeMatch) {
+    return res.status(400).json({ msg: "Invalid orgType credentials" });
+  }
+  if (userData.email !== email) {
+    return res.status(400).json({ msg: "Invalid email credentials" });
+  }
+
+  const isMatch = await bcrypt.compare(password, userData.password);
+
+  if (!isMatch) {
+    return res.status(400).json({ msg: "Invalid password credentials" });
+  }
+  const token = jwt.sign({ username: userData.name }, secret, {
+    expiresIn: "1h",
+  });
+  const refreshToken = jwt.sign({ username: userData.name }, refreshSecret, {
+    expiresIn: "1d",
+  });
+  res.status(200).json({
+    msg: "Login Successfull!",
+    data: { token, refreshToken, userData },
+  });
+  // res.json({ token, refreshToken });
+});
+
+module.exports = {
+  registerUser,
+  loginUser,
+  currentUser,
+  refreshToken,
+  logout,
+  loginOrgType,
+};
