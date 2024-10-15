@@ -147,7 +147,6 @@ const updateAllRollOrgType = asyncHandler(async (req, res) => {
       return orgTypeRollModel.populate(updatedRoll, { path: "Menu" });
     })
   );
-  console.log(updatedRolls, "updatedRoll");
   const jsonString = JSON.stringify(updatedRolls);
 
   const encryptedData = encrypt(jsonString);
