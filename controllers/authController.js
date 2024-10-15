@@ -142,7 +142,7 @@ const loginOrgType = asyncHandler(async (req, res) => {
       expiresIn: "1d",
     }
   );
-
+  //
   // const orgTypeDataPromise = await orgTypeModel.findOne({
   //   tOrg: org,
   //   _id: orgType,
