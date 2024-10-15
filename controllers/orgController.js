@@ -283,7 +283,7 @@ exports.getAllOrganization = asyncHandler(async (req, res) => {
   res.status(200).json({
     msg: "Get all organization Successfully!",
     status: true,
-    data: encryptedData,
+    data: organizations,
     path: "/app/image",
   });
 });

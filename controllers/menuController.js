@@ -1,51 +1,70 @@
 const asyncHandler = require("express-async-handler");
 const Menu = require("../models/menuModel");
 const { encrypt } = require("../config/EncryptionDecryption");
+const logoHandler = require("../config/LogoUpload");
+const parseJson = require("../helper/JsonHelper");
 
 const createMenu = asyncHandler(async (req, res) => {
-  try {
-    const { mName, mLocationPath, mIcon, mOrg } = req.body;
+  logoHandler(req, res, async (err) => {
+    try {
+      const confiq = parseJson(req.body);
+      console.log(confiq);
 
-    if (!mName || !mLocationPath || !mIcon || !mOrg) {
-      res.status(400).json({
+      const { mName, mLocationPath, mIcon, mOrg, mService } = confiq;
+
+      if (!mName || !mLocationPath || !mIcon || !mOrg) {
+        res.status(400).json({
+          data: {},
+          message: "All fields are mandatory",
+          isSuccess: false,
+        });
+        throw new Error("All fields are mandatory");
+      }
+      const menuData = await Menu.findOne({
+        mName: mName,
+        mLocationPath: mLocationPath,
+        mOrg: mOrg,
+      });
+
+      if (menuData?.mName === mName) {
+        return res
+          .status(400)
+          .json({ msg: "Dublicate MenuName. Pls Change MenuName." });
+      }
+      if (menuData?.mLocationPath === mLocationPath) {
+        return res.status(400).json({
+          msg: "Dublicate MenuLocationPath. Pls Change MenuLocationPath.",
+        });
+      }
+      const menuImage = req.files["menuImage"]
+        ? req.files["menuImage"][0]
+        : null;
+      console.log(menuImage);
+
+      await Menu.create({
+        mName,
+        mLocationPath,
+        mIcon,
+        mOrg,
+        mService,
+        mImage: menuImage?.filename,
+      });
+      const menuList = await Menu.find({ mOrg: mOrg });
+      const jsonString = JSON.stringify(menuList);
+      const encryptedData = encrypt(jsonString);
+      res.status(201).json({
+        data: encryptedData,
+        message: "Create Menu Successfully!.",
+        isSuccess: true,
+      });
+    } catch (error) {
+      return res.status(500).json({
         data: {},
-        message: "All fields are mandatory",
+        message: "Error creating menu",
         isSuccess: false,
       });
-      throw new Error("All fields are mandatory");
     }
-    const menuData = await Menu.findOne({
-      mName: mName,
-      mLocationPath: mLocationPath,
-      mOrg: mOrg,
-    });
-
-    if (menuData?.mName === mName) {
-      return res
-        .status(400)
-        .json({ msg: "Dublicate MenuName. Pls Change MenuName." });
-    }
-    if (menuData?.mLocationPath === mLocationPath) {
-      return res.status(400).json({
-        msg: "Dublicate MenuLocationPath. Pls Change MenuLocationPath.",
-      });
-    }
-    await Menu.create({ mName, mLocationPath, mIcon, mOrg });
-    const menuList = await Menu.find({ mOrg: mOrg });
-    const jsonString = JSON.stringify(menuList);
-    const encryptedData = encrypt(jsonString);
-    res.status(201).json({
-      data: encryptedData,
-      message: "Create Menu Successfully!.",
-      isSuccess: true,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      data: {},
-      message: "Error creating menu",
-      isSuccess: false,
-    });
-  }
+  });
 });
 
 const getAllMenu = asyncHandler(async (req, res) => {

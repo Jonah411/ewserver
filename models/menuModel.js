@@ -14,6 +14,12 @@ const menuSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    mService: {
+      type: String,
+    },
+    mImage: {
+      type: String,
+    },
     mOrg: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",

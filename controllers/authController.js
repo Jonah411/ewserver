@@ -4,6 +4,8 @@ const Member = require("../models/memberModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { ObjectId } = require("mongodb");
+const orgTypeModel = require("../models/orgTypeModel");
+const orgTypeRollModel = require("../models/orgTypeRollModel");
 const secret = "workeasy0409";
 const refreshSecret = "refreshworkeasy0409";
 
@@ -90,43 +92,80 @@ const currentUser = asyncHandler(async (req, res) => {
 
 const loginOrgType = asyncHandler(async (req, res) => {
   const { org, orgType, email, password } = req.body;
-  let userData = await Member.findOne({
+  console.log(org);
+
+  let userDataPromise = await Member.findOne({
     Organization: org,
     orgtype: { $in: [orgType] },
     email: email,
-  }).populate("Organization");
+  })
+    .populate("Organization")
+    .populate("Roll")
+    .populate("orgtype")
+    .populate({
+      path: "orgtypeRoll",
+      populate: {
+        path: "Menu",
+        model: "Menu",
+      },
+    });
 
-  if (!userData) {
+  if (!userDataPromise) {
     return res.status(400).json({ msg: "mismatch Organization and Email" });
   }
   const organizationId = new ObjectId(org);
   const orgTypeId = new ObjectId(orgType);
 
-  if (!userData.Organization._id.equals(organizationId)) {
+  if (!userDataPromise.Organization._id.equals(organizationId)) {
     return res.status(400).json({ msg: "Invalid organization credentials" });
   }
-  const orgTypeMatch = userData.orgtype.some((orgType) =>
+  const orgTypeMatch = userDataPromise.orgtype.some((orgType) =>
     orgType.equals(orgTypeId)
   );
 
   if (!orgTypeMatch) {
     return res.status(400).json({ msg: "Invalid orgType credentials" });
   }
-  if (userData.email !== email) {
+  if (userDataPromise.email !== email) {
     return res.status(400).json({ msg: "Invalid email credentials" });
   }
 
-  const isMatch = await bcrypt.compare(password, userData.password);
+  const isMatch = await bcrypt.compare(password, userDataPromise.password);
 
   if (!isMatch) {
     return res.status(400).json({ msg: "Invalid password credentials" });
   }
-  const token = jwt.sign({ username: userData.name }, secret, {
+  const token = jwt.sign({ username: userDataPromise.name }, secret, {
     expiresIn: "1h",
   });
-  const refreshToken = jwt.sign({ username: userData.name }, refreshSecret, {
-    expiresIn: "1d",
+  const refreshToken = jwt.sign(
+    { username: userDataPromise.name },
+    refreshSecret,
+    {
+      expiresIn: "1d",
+    }
+  );
+
+  const orgTypeDataPromise = await orgTypeModel.findOne({
+    tOrg: org,
+    _id: orgType,
   });
+
+  const [newuserData, orgTypeData] = await Promise.all([
+    userDataPromise,
+    orgTypeDataPromise,
+  ]);
+
+  const findData = newuserData?.orgtypeRoll?.find(
+    (li) =>
+      li?.Org.toString() === org.toString() &&
+      li?.OrgType.toString() === orgType.toString()
+  );
+  const userData = {
+    ...newuserData.toObject(),
+    orgtype: orgTypeData,
+    orgtypeRoll: findData,
+  };
   res.status(200).json({
     msg: "Login Successfull!",
     data: { token, refreshToken, userData },
