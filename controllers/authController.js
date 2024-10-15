@@ -92,23 +92,19 @@ const currentUser = asyncHandler(async (req, res) => {
 
 const loginOrgType = asyncHandler(async (req, res) => {
   const { org, orgType, email, password } = req.body;
-  console.log(org);
 
   let userDataPromise = await Member.findOne({
     Organization: org,
     orgtype: { $in: [orgType] },
     email: email,
   })
-    .populate("Organization")
-    .populate("Roll")
+
+    .populate("Organization", "_id")
     .populate("orgtype")
-    .populate({
-      path: "orgtypeRoll",
-      populate: {
-        path: "Menu",
-        model: "Menu",
-      },
-    });
+
+    .select(
+      "_id memberId name password age dob marraigedate gender marraigestatus memberImage userAddress email phoneNo orgtype"
+    );
 
   if (!userDataPromise) {
     return res.status(400).json({ msg: "mismatch Organization and Email" });
@@ -119,6 +115,7 @@ const loginOrgType = asyncHandler(async (req, res) => {
   if (!userDataPromise.Organization._id.equals(organizationId)) {
     return res.status(400).json({ msg: "Invalid organization credentials" });
   }
+
   const orgTypeMatch = userDataPromise.orgtype.some((orgType) =>
     orgType.equals(orgTypeId)
   );
@@ -146,26 +143,32 @@ const loginOrgType = asyncHandler(async (req, res) => {
     }
   );
 
-  const orgTypeDataPromise = await orgTypeModel.findOne({
-    tOrg: org,
-    _id: orgType,
-  });
+  // const orgTypeDataPromise = await orgTypeModel.findOne({
+  //   tOrg: org,
+  //   _id: orgType,
+  // });
 
-  const [newuserData, orgTypeData] = await Promise.all([
-    userDataPromise,
-    orgTypeDataPromise,
-  ]);
+  // const [newuserData] = await Promise.all([userDataPromise]);
 
-  const findData = newuserData?.orgtypeRoll?.find(
-    (li) =>
-      li?.Org.toString() === org.toString() &&
-      li?.OrgType.toString() === orgType.toString()
+  // const findData = newuserData?.orgtypeRoll?.find(
+  //   (li) =>
+  //     li?.Org.toString() === org.toString() &&
+  //     li?.OrgType.toString() === orgType.toString()
+  // );
+  let userDataPromiseData = await Member.findOne({
+    Organization: org,
+    orgtype: { $in: [orgType] },
+    email: email,
+  }).select(
+    "_id memberId name password age dob marraigedate gender marraigestatus memberImage userAddress email phoneNo"
   );
+
   const userData = {
-    ...newuserData.toObject(),
-    orgtype: orgTypeData,
-    orgtypeRoll: findData,
+    ...userDataPromiseData.toObject(),
+    orgType: orgType,
+    org: org,
   };
+
   res.status(200).json({
     msg: "Login Successfull!",
     data: { token, refreshToken, userData },
