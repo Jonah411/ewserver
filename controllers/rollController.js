@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Roll = require("../models/rollModel");
 const { encrypt } = require("../config/EncryptionDecryption");
+const orgTypeRollModel = require("../models/orgTypeRollModel");
 
 const createRoll = asyncHandler(async (req, res) => {
   try {
@@ -100,4 +101,69 @@ const updateAllRoll = asyncHandler(async (req, res) => {
     isSuccess: true,
   });
 });
-module.exports = { createRoll, getAllRoll, updateRoll, updateAllRoll };
+
+const getAllOTRoll = asyncHandler(async (req, res) => {
+  const orgId = req.params.orgid;
+  const orgTypeId = req.params.orgtypeid;
+
+  const roll = await orgTypeRollModel.find({ Org: orgId, OrgType: orgTypeId });
+
+  const jsonString = JSON.stringify(roll);
+  const encryptedData = encrypt(jsonString);
+  res.status(201).json({
+    data: encryptedData,
+    message: "Get All Menu Successfully!.",
+    isSuccess: true,
+  });
+});
+
+const updateAllRollOrgType = asyncHandler(async (req, res) => {
+  const rollData = req.body;
+
+  if (!Array.isArray(rollData)) {
+    return res.status(400).json({
+      message: "Invalid input, expected an array of rolls",
+      isSuccess: false,
+    });
+  }
+
+  const updatedRolls = await Promise.all(
+    rollData.map(async (li) => {
+      const Menu = li?.Menu;
+      const roll = await orgTypeRollModel.findById({
+        _id: li?._id,
+        Org: li?.Org,
+        OrgType: li?.OrgType,
+      });
+
+      if (!roll) {
+        throw new Error(`Roll with ID ${li?._id} not found`);
+      }
+
+      roll.Menu = Menu || roll.Menu;
+
+      const updatedRoll = await roll.save();
+
+      return orgTypeRollModel.populate(updatedRoll, { path: "Menu" });
+    })
+  );
+  console.log(updatedRolls, "updatedRoll");
+  const jsonString = JSON.stringify(updatedRolls);
+
+  const encryptedData = encrypt(jsonString);
+
+  res.status(200).json({
+    data: encryptedData,
+    message: "All rolls updated successfully",
+    isSuccess: true,
+  });
+});
+
+module.exports = {
+  createRoll,
+  getAllRoll,
+  updateRoll,
+  updateAllRoll,
+  getAllOTRoll,
+  updateAllRollOrgType,
+};

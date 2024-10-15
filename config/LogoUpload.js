@@ -44,6 +44,7 @@ const uploadHandler = upload.fields([
   { name: "orgLogo", maxCount: 1 },
   { name: "userImage", maxCount: 1 },
   { name: "memberImage", maxCount: 1 },
+  { name: "menuImage", maxCount: 1 },
 ]);
 
 module.exports = uploadHandler;

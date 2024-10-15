@@ -222,8 +222,38 @@ const getAllOrgMember = asyncHandler(async (req, res) => {
   }
 });
 
+const getSingleOrgMember = asyncHandler(async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.memberid)) {
+      return res
+        .status(400)
+        .json({ msg: "Invalid Organization ID.", status: false });
+    }
+
+    const member = await memberModel
+      .findById(req.params.memberid)
+      .populate("Organization User Roll");
+
+    if (!member) {
+      return res.status(404).json({ msg: "member Not Found.", status: false });
+    }
+
+    const jsonString = JSON.stringify(member);
+    const encryptedData = encrypt(jsonString);
+    res.status(200).json({
+      msg: "Get All Org User Successfully!",
+      status: true,
+      data: encryptedData,
+    });
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    res.status(500).json({ msg: error.message, status: false });
+  }
+});
+
 module.exports = {
   createMember,
   getAllOrgUserMember,
   getAllOrgMember,
+  getSingleOrgMember,
 };

@@ -24,7 +24,7 @@ const orgtyperollSchema = mongoose.Schema(
     Menu: [
       {
         type: Schema.Types.ObjectId,
-        ref: "OrgTypeMenu",
+        ref: "Menu",
       },
     ],
   },
